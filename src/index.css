@@ -1,0 +1,1090 @@
+/* ==========================================================================
+   Design tokens
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Caveat:wght@500;700&family=Playfair+Display:ital@1&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --paper: #f6f0e6;
+  --paper-shadow: #e9dfcd;
+  --ink: #4a4038;
+  --ink-soft: #8a7f72;
+  --accent: #b5527a;
+  --accent-soft: #d98aa8;
+  --lavender: #9b8fc4;
+  --sage: #7fa88f;
+
+  --tab-home: #f3a6a6;
+  --tab-about: #b8d8b0;
+  --tab-skills: #a9c6e8;
+  --tab-projects: #e8c4a0;
+  --tab-experience: #d6b3e0;
+  --tab-contact: #f0c9db;
+
+  --floral-stem: #8fa87f;
+  --floral-petal: #e8a7c0;
+  --floral-center: #f4d35e;
+
+  --font-display: 'Playfair Display', serif;
+  --font-script: 'Caveat', cursive;
+  --font-body: 'Poppins', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --shadow-book: 0 30px 60px -20px rgba(74, 64, 56, 0.35);
+
+  --topbar-h: 56px;
+  --app-pad: 40px;
+}
+
+[data-theme='dark'] {
+  --paper: #2a2620;
+  --paper-shadow: #1c1915;
+  --ink: #ede4d8;
+  --ink-soft: #b6ab9c;
+}
+
+* { box-sizing: border-box; }
+
+/* ==========================================================================
+   App-open preloader: full-screen splash shown until assets are ready,
+   see src/components/Preloader.jsx. Fades out via opacity so it never
+   causes a layout jump when it's removed.
+   ========================================================================== */
+.nb-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: var(--paper);
+  transition: opacity 0.45s ease;
+}
+.nb-preloader.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.nb-preloader-text {
+  font-family: var(--font-script);
+  font-size: 1.35rem;
+  color: var(--ink-soft);
+}
+@media (prefers-reduced-motion: reduce) {
+  .nb-preloader { transition: none; }
+}
+
+/* ==========================================================================
+   Fixed-viewport template: the app frame never produces a page scrollbar.
+   Only .notebook-page-inner (the content pane) scrolls, per page.
+   ========================================================================== */
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: radial-gradient(circle at 50% 20%, #efe8f5, #e4dce8 60%, #d9cfdd);
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, textarea {
+  font-family: inherit;
+}
+
+/* ==========================================================================
+   App shell / book frame
+   ========================================================================== */
+.notebook-app {
+  height: 100dvh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  padding: var(--app-pad) 20px;
+  overflow: hidden;
+}
+
+.notebook-spread {
+  width: min(1180px, 100%);
+  height: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.notebook-book-row {
+  display: flex;
+  align-items: flex-start;
+  flex: 1;
+  min-height: 0;
+}
+
+.notebook-book {
+  position: relative;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  background: var(--paper);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-book);
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.notebook-spine {
+  position: absolute;
+  left: 220px;
+  top: 0;
+  bottom: 0;
+  width: 26px;
+  margin-left: -13px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(0, 0, 0, 0.08) 45%,
+    rgba(0, 0, 0, 0.08) 55%,
+    transparent
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+.notebook-page { position: relative; min-height: 0; }
+.notebook-page--left { background: var(--paper-shadow); overflow-y: auto; overflow-x: hidden; }
+.notebook-page--right { padding: 8px; min-height: 0;min-width: 0; display: flex; }
+
+.notebook-page-inner {
+  flex: 1;
+  min-width: 0; 
+  min-height: 0;
+  padding: clamp(20px, 3vw, 40px) clamp(20px, 4vw, 44px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 27px,
+    rgba(74, 64, 56, 0.05) 28px
+  );
+}
+
+/* Book page-flip: hinged at the spine (left edge of the right page), like a
+   real page turning open. Re-triggers on every navigation because the
+   element is remounted via `key={activePage}` in NotebookPage.jsx. Direction
+   depends on whether the destination chapter is later ("forward") or
+   earlier ("back") in the tab order, so flicking left/right through
+   chapters feels physically consistent.
+
+   Kept to a shallow ~28deg rotation (not a full 90) with opacity easing
+   continuously across the whole duration, rather than jumping partway
+   through — a full quarter-turn plus a hard opacity switch is what made
+   the earlier version read as a "pop" instead of one continuous motion.
+   will-change hints the browser to composite this on the GPU so it stays
+   smooth even while the page underneath is scrollable/has images. */
+.notebook-page-turn {
+  transform-origin: left center;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+.notebook-page-turn--forward {
+  animation: nb-page-flip-forward 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.notebook-page-turn--back {
+  animation: nb-page-flip-back 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes nb-page-flip-forward {
+  0%   { transform: perspective(1800px) rotateY(-28deg) translateX(-10px); opacity: 0.4; }
+  100% { transform: perspective(1800px) rotateY(0deg) translateX(0); opacity: 1; }
+}
+@keyframes nb-page-flip-back {
+  0%   { transform: perspective(1800px) rotateY(28deg) translateX(10px); opacity: 0.4; }
+  100% { transform: perspective(1800px) rotateY(0deg) translateX(0); opacity: 1; }
+}
+
+/* Themed, slim scrollbar for every internally-scrolling pane (replaces the
+   default OS scrollbar the app used to leak onto the page) */
+.notebook-page-inner,
+.notebook-page--left {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-soft) transparent;
+}
+.notebook-page-inner::-webkit-scrollbar,
+.notebook-page--left::-webkit-scrollbar { width: 6px; }
+.notebook-page-inner::-webkit-scrollbar-thumb,
+.notebook-page--left::-webkit-scrollbar-thumb {
+  background: var(--accent-soft);
+  border-radius: 999px;
+}
+.notebook-page-inner::-webkit-scrollbar-track,
+.notebook-page--left::-webkit-scrollbar-track { background: transparent; }
+
+/* ==========================================================================
+   Mobile top bar + drawer backdrop (hidden on desktop)
+   ========================================================================== */
+.notebook-topbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--topbar-h);
+  flex-shrink: 0;
+  padding: 0 4px 10px;
+}
+.notebook-topbar-logo {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 22px;
+  color: var(--ink);
+}
+.notebook-topbar-menu {
+  border: none;
+  background: #fff;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.notebook-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  border: none;
+  background: rgba(20, 16, 12, 0.4);
+  z-index: 40;
+  cursor: pointer;
+}
+
+.notebook-sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+.notebook-sidebar-close {
+  display: none;
+  border: none;
+  background: rgba(0, 0, 0, 0.06);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+/* ==========================================================================
+   Sidebar (left page)
+   ========================================================================== */
+.notebook-sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 32px 22px;
+}
+
+.notebook-logo {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 26px;
+}
+
+.notebook-navlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.notebook-navlink {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  color: var(--ink-soft);
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.notebook-navlink:hover { background: rgba(181, 82, 122, 0.08); color: var(--ink); }
+
+.notebook-navlink.is-active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.notebook-navicon { flex-shrink: 0; }
+
+.notebook-audio {
+  margin-top: auto;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.notebook-audio-wave {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 28px;
+  margin-bottom: 8px;
+}
+
+.notebook-audio-wave span {
+  flex: 1;
+  height: var(--h);
+  background: var(--accent-soft);
+  border-radius: 2px;
+  animation: none;
+}
+
+.notebook-audio-wave.is-playing span {
+  animation: wave 1s ease-in-out infinite alternate;
+}
+
+@keyframes wave {
+  from { transform: scaleY(0.3); }
+  to   { transform: scaleY(1); }
+}
+
+.notebook-audio-wave span:nth-child(1)  { animation-delay: 0.0s; }
+.notebook-audio-wave span:nth-child(2)  { animation-delay: 0.1s; }
+.notebook-audio-wave span:nth-child(3)  { animation-delay: 0.2s; }
+.notebook-audio-wave span:nth-child(4)  { animation-delay: 0.3s; }
+.notebook-audio-wave span:nth-child(5)  { animation-delay: 0.4s; }
+.notebook-audio-wave span:nth-child(6)  { animation-delay: 0.5s; }
+.notebook-audio-wave span:nth-child(7)  { animation-delay: 0.6s; }
+.notebook-audio-wave span:nth-child(8)  { animation-delay: 0.7s; }
+.notebook-audio-wave span:nth-child(9)  { animation-delay: 0.8s; }
+.notebook-audio-wave span:nth-child(10)  { animation-delay: 0.9s; }
+.notebook-audio-wave span:nth-child(11)  { animation-delay: 0.10s; }
+.notebook-audio-wave span:nth-child(12)  { animation-delay: 0.11s; }
+.notebook-audio-wave span:nth-child(13)  { animation-delay: 0.12s; }
+.notebook-audio-wave span:nth-child(14)  { animation-delay: 0.13s; }
+
+.notebook-audio-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.notebook-audio-title { color: var(--ink-soft); }
+
+.notebook-audio-btn {
+  border: none;
+  background: #fff;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.notebook-social {
+  display: flex;
+  gap: 14px;
+  margin-top: 16px;
+  color: var(--ink-soft);
+}
+.notebook-social a { color: inherit; display: inline-flex; }
+.notebook-social a:hover { color: var(--accent); }
+
+/* ==========================================================================
+   Tab rail (right edge)
+   ========================================================================== */
+.notebook-tabrail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-top: 40px;
+  margin-left: -16px;
+  z-index: 3;
+}
+
+.notebook-tab {
+  border: none;
+  cursor: pointer;
+  background: var(--tab-color);
+  color: var(--ink);
+  writing-mode: vertical-rl;
+  padding: 12px 6px;
+  border-radius: 0 8px 8px 0;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.75;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.notebook-tab:hover { opacity: 1; }
+
+.notebook-tab.is-active {
+  opacity: 1;
+  transform: translateX(4px);
+  box-shadow: -4px 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.notebook-tab-number { font-family: var(--font-mono); font-size: 10px; }
+
+/* ==========================================================================
+   Shared page typography / primitives
+   ========================================================================== */
+.notebook-heading {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 40px);
+  margin: 0 0 4px;
+  line-height: 1.1;
+}
+.notebook-heading--sm { font-size: clamp(22px, 3vw, 28px); }
+.notebook-heading--script { font-family: var(--font-script); font-size: clamp(32px, 4vw, 44px); }
+.notebook-heading-accent { color: var(--accent); }
+
+.eyebrow-code {
+  font-family: var(--font-mono);
+  color: var(--sage);
+  font-size: 13px;
+  margin: 0 0 12px;
+}
+
+.notebook-role {
+  font-family: var(--font-script);
+  font-size: clamp(19px, 2.4vw, 24px);
+  color: var(--lavender);
+  margin: 0 0 16px;
+}
+
+.notebook-lede {
+  color: var(--ink-soft);
+  line-height: 1.7;
+  max-width: 42ch;
+}
+.notebook-lede--script { font-family: var(--font-script); font-size: 20px; color: var(--accent); }
+
+.notebook-paragraph {
+  color: var(--ink-soft);
+  line-height: 1.75;
+  max-width: 46ch;
+}
+
+.notebook-signature {
+  font-family: var(--font-script);
+  font-size: 30px;
+  color: var(--accent);
+  margin-top: 18px;
+}
+
+.notebook-codeblock {
+  background: rgba(74, 64, 56, 0.06);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--sage);
+  margin: 18px 0 22px;
+  max-width: 300px;
+  overflow-x: auto;
+}
+
+.notebook-btn-primary {
+  border: none;
+  background: var(--accent-soft);
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.notebook-btn-primary:hover { background: var(--accent); transform: translateY(-1px); }
+.notebook-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.notebook-scroll-hint {
+  font-size: 11px;
+  color: var(--ink-soft);
+  text-align: center;
+  margin-top: 12px;
+}
+
+/* Sticky note */
+.notebook-sticky {
+  position: relative;
+  font-family: var(--font-script);
+  font-size: 18px;
+  line-height: 1.3;
+  padding: 14px 18px;
+  border-radius: 4px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  transform: rotate(-2deg);
+}
+.notebook-sticky--peach { background: #f6d9b8; }
+.notebook-sticky--lavender { background: #e2dbf3; }
+.notebook-sticky--yellow { background: #f5e7a8; }
+.notebook-sticky-tape {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  width: 46px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+/* Floral corner flourish */
+.notebook-floral { position: absolute; width: 70px; opacity: 0.9; pointer-events: none; }
+
+/* Card (Fun Facts, etc.) */
+.notebook-card {
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  margin-top: 16px;
+}
+.notebook-card-title { font-size: 14px; margin: 0 0 10px; }
+.notebook-card-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 13px; color: var(--ink-soft); }
+
+/* Photo placeholder (swap background-image for real art) */
+.notebook-photo-frame {
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-md);
+  background: linear-gradient(145deg, #d9c4e8, #f0c9d8 55%, #f6dcb8);
+}
+.notebook-photo--wide .notebook-photo-frame { aspect-ratio: 4 / 3; }
+.notebook-photo { position: relative; }
+
+/* ==========================================================================
+   Home page
+   ========================================================================== */
+.page-home {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 32px;
+  align-items: center;
+}
+.page-home-visual { position: relative; }
+.page-home-sticky { position: absolute; bottom: -18px; left: -6px; }
+.page-home-floral { bottom: -20px; right: -10px; transform: rotate(20deg); }
+
+/* ==========================================================================
+   About page
+   ========================================================================== */
+.page-about { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 32px; }
+.page-about-visual { position: relative; }
+.page-about-floral { bottom: -20px; right: -10px; transform: rotate(20deg); }
+
+/* ==========================================================================
+   Skills page
+   ========================================================================== */
+/* ==========================================================================
+   Skills page — grouped categories with pill tags
+   ========================================================================== */
+.notebook-skill-categories {
+  margin: 26px 0 28px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.notebook-skill-category {
+  background: rgba(0, 0, 0, 0.03);
+  border-left: 3px solid var(--category-accent, var(--accent));
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+}
+
+.notebook-skill-category-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: var(--ink);
+}
+
+.notebook-skill-category-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 12px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--category-accent, var(--accent)) 30%, white);
+  flex-shrink: 0;
+}
+
+.notebook-skill-pills {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.notebook-skill-pill {
+  font-size: 12px;
+  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--category-accent, var(--accent)) 45%, transparent);
+  border-radius: 999px;
+  padding: 5px 12px;
+  white-space: nowrap;
+}
+
+.page-skills { position: relative; }
+.page-skills-sticky { display: inline-block; margin-top: 4px; }
+.page-skills-floral { bottom: -6px; right: -8px; }
+
+/* ==========================================================================
+   Projects page — horizontal scroller + themed progress tracker
+   ========================================================================== */
+.page-projects-head { margin-bottom: 18px; }
+
+.notebook-scroller-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.notebook-project-track {
+  flex: 1 1 auto;
+  min-width: 0;
+  list-style: none;
+  margin: 0;
+  padding: 4px 4px 16px;
+  display: flex;
+  gap: var(--project-gap, 18px);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+}
+.notebook-project-track::-webkit-scrollbar { display: none; }
+.notebook-project-track:focus-visible { outline: 2px solid var(--accent-soft); outline-offset: 4px; }
+
+.notebook-project-card {
+  flex: 0 0 calc((100% - 2 * var(--project-gap, 18px)) / 3);
+  scroll-snap-align: start;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: var(--radius-md);
+  padding: 14px;
+}
+.notebook-project-thumb {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #cfd8f0, #f0d9c4);
+  margin-bottom: 10px;
+}
+.notebook-project-bookmark {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border: none;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+}
+.notebook-project-title { font-size: 15px; margin: 0 0 8px; }
+.notebook-project-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.notebook-tag {
+  font-size: 11px;
+  background: #fff;
+  border-radius: 999px;
+  padding: 3px 10px;
+  color: var(--ink-soft);
+}
+.notebook-project-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.notebook-scroller-arrow {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.14);
+  cursor: pointer;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+}
+.notebook-scroller-arrow:hover:not(:disabled) { background: var(--accent-soft); color: #fff; transform: scale(1.06); }
+.notebook-scroller-arrow:disabled { opacity: 0.25; cursor: not-allowed; }
+
+/* Cat-track scroll tracker: a trail of paw prints "light up" as you scroll,
+   like footprints left behind — the current step pops larger. */
+.notebook-scrub-trail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  margin-top: 12px;
+  padding: 0 6px;
+}
+.notebook-scrub-paw {
+  font-size: 15px;
+  opacity: 0.25;
+  filter: grayscale(1);
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.25s ease;
+}
+.notebook-scrub-paw.is-reached {
+  opacity: 0.85;
+  filter: grayscale(0);
+}
+.notebook-scrub-paw.is-current {
+  opacity: 1;
+  filter: drop-shadow(0 3px 4px rgba(74, 64, 56, 0.3));
+}
+/* ==========================================================================
+   Experience page
+   ========================================================================== */
+.page-experience { position: relative; }
+
+.page-experience-body {
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.notebook-timeline { list-style: none; margin: 28px 0 0; padding: 0; position: relative; }
+.notebook-timeline::before {
+  content: '';
+  position: absolute;
+  left: 22px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: rgba(74, 64, 56, 0.15);
+}
+.notebook-timeline-item { display: grid; grid-template-columns: 44px 1fr; gap: 16px; margin-bottom: 26px; }
+.notebook-timeline-marker {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  z-index: 1;
+}
+.notebook-timeline-period { font-size: 11px; color: var(--ink-soft); margin: 0 0 2px; }
+.notebook-timeline-title { margin: 0; font-size: 16px; }
+.notebook-timeline-company { font-size: 13px; color: var(--accent); margin: 2px 0 6px; }
+.notebook-timeline-desc { font-size: 13px; color: var(--ink-soft); margin: 0; max-width: 46ch; }
+
+.page-experience-visual { position: relative; margin-top: 28px; }
+.page-experience-floral { bottom: -14px; right: -10px; }
+
+/* ==========================================================================
+   Contact page
+   ========================================================================== */
+.page-contact { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 32px; }
+.notebook-contact-list {
+  list-style: none;
+  margin: 22px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+.notebook-contact-list li { display: flex; align-items: center; gap: 10px; }
+
+.notebook-form {
+  background: #fff;
+  border-radius: var(--radius-md);
+  padding: 22px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+.notebook-field { display: grid; gap: 6px; font-size: 12px; color: var(--ink-soft); }
+.notebook-field input,
+.notebook-field textarea {
+  border: 1px solid rgba(74, 64, 56, 0.15);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--ink);
+  resize: vertical;
+}
+.notebook-field input:focus,
+.notebook-field textarea:focus {
+  outline: 2px solid var(--accent-soft);
+  outline-offset: 1px;
+}
+.notebook-form-status { font-size: 13px; margin: 0; }
+.notebook-form-status.is-success { color: var(--sage); }
+.notebook-form-status.is-error { color: var(--accent); }
+
+/* new */
+@keyframes nb-pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(194,59,110,0.35); }
+    50%      { box-shadow: 0 0 0 7px rgba(194,59,110,0); }
+  }
+
+  /* icon badge in contact list */
+  .nb-icon-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    transition: background 0.18s;
+    font-size: 13.5px;
+    color: #5a4f46;
+    list-style: none;
+  }
+  .nb-icon-item:hover { background: rgba(194,59,110,0.07); }
+  .nb-icon-badge {
+    width: 34px; height: 34px; min-width: 34px;
+    background: #fff;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.10);
+    color: #c23b6e;
+  }
+
+  /* improved form card */
+  .nb-form-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 36px 30px 32px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.09);
+    position: relative;
+    overflow: hidden;
+  }
+  /* gradient top bar */
+  .nb-form-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 10%; right: 10%; height: 3px;
+    border-radius: 0 0 4px 4px;
+  }
+  .nb-form-card-wrap { position: relative; }
+  .nb-form-card { position: relative; z-index: 1; }
+
+  /* eyebrow label */
+  .nb-form-eyebrow {
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.09em; text-transform: uppercase;
+    color: #c23b6e; margin-bottom: 22px;
+  }
+
+  /* improved field */
+  .nb-field-wrap { margin-bottom: 18px; }
+  .nb-field-wrap span {
+    display: block; font-size: 12px;
+    font-weight: 500; color: #9e8e84; margin-bottom: 6px;
+  }
+  .nb-field-input {
+    width: 100%; background: #faf8f5;
+    border-radius: 10px; padding: 11px 14px;
+    font-size: 14px; color: #2d2117;
+    outline: none; resize: none; font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .nb-field-input:focus {
+    box-shadow: 0 0 0 3px rgba(194,59,110,0.12);
+  }
+
+  /* send button */
+  .nb-send-btn {
+    width: 100%; padding: 14px;
+    background: #c23b6e; color: #fff;
+    border: none; border-radius: 40px; cursor: pointer;
+    font-size: 14px; font-weight: 600; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    margin-top: 4px;
+    animation: nb-pulse 3s ease-in-out infinite;
+  }
+  .nb-send-btn:hover:not(:disabled) {
+    background: #a82d5c;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(194,59,110,0.35);
+    animation: none;
+  }
+  .nb-send-btn:disabled { opacity: 0.7; cursor: not-allowed; animation: none; }
+
+  /* status messages */
+  .nb-status {
+    margin-top: 14px; padding: 10px 14px;
+    border-radius: 10px; font-size: 13px; text-align: center;
+  }
+  .nb-status.ok {
+    background: rgba(74,170,24,0.1);
+    border: 1px solid rgba(74,170,24,0.3);
+    color: #2d5016;
+  }
+  .nb-status.err {
+    background: rgba(220,80,50,0.08);
+    border: 1px solid rgba(220,80,50,0.25);
+    color: #c0421a;
+  }
+
+  /* ── lavender tape note (matches image reference) ── */
+  .nb-note-card {
+    position: relative;
+    background: #ddd6f3;
+    border-radius: 6px;
+    padding: 22px 20px 20px;
+    width: 210px;
+    margin-top: 32px;
+    box-shadow: 3px 5px 16px rgba(0,0,0,0.10);
+    transform: rotate(-2deg);
+  }
+  /* tape strip at top-center */
+  .nb-note-card::before {
+    content: "";
+    position: absolute;
+    top: -10px; left: 50%; transform: translateX(-50%);
+    width: 56px; height: 20px;
+    background: rgba(255,255,255,0.55);
+    border-radius: 3px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+  }
+  .nb-note-line {
+    font-size: 14px; color: #3b2f4a;
+    line-height: 1.75; font-style: italic;
+  }
+  .nb-note-tag {
+    display: inline-block;
+    background: rgba(194,59,110,0.15);
+    color: #c23b6e; border-radius: 4px;
+    padding: 2px 8px; font-size: 11px; font-weight: 600;
+    margin-top: 10px; font-style: normal;
+  }
+
+/* ==========================================================================
+   Responsive — tablet
+   ========================================================================== */
+@media (max-width: 980px) {
+  --project-gap: 14px;
+  .notebook-project-track { gap: 14px; }
+}
+
+/* ==========================================================================
+   Responsive — mobile: drawer nav, stacked pages, tab rail as a chip row
+   ========================================================================== */
+@media (max-width: 860px) {
+  :root { --app-pad: 14px; }
+
+  .notebook-app { justify-content: flex-start; }
+  .notebook-topbar { display: flex; }
+
+  .notebook-book { grid-template-columns: 1fr; border-radius: var(--radius-md); }
+  .notebook-spine { display: none; }
+
+  .notebook-page--left {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(78vw, 300px);
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 50;
+    box-shadow: 12px 0 30px rgba(0, 0, 0, 0.25);
+  }
+  .notebook-page--left.is-open { transform: translateX(0); }
+  .notebook-sidebar-close { display: flex; }
+
+  .notebook-book-row { flex-direction: column; }
+  .notebook-book { width: 100%; }
+
+  .notebook-tabrail {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 6px;
+    margin: 10px 0 0;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .notebook-tabrail::-webkit-scrollbar { display: none; }
+  .notebook-tab {
+    writing-mode: horizontal-tb;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    padding: 8px 14px;
+  }
+  .notebook-tab.is-active { transform: none; }
+
+  .page-home,
+  .page-about,
+  .page-contact { grid-template-columns: 1fr; }
+  .page-home-visual,
+  .page-about-visual { order: -1; max-width: 240px; margin: 0 auto 18px; }
+  .page-home-sticky { left: 4px; }
+  .notebook-floral { display: none; }
+
+  .notebook-skill-categories { grid-template-columns: 1fr; gap: 14px; }
+
+  .notebook-project-card { flex-basis: 72vw; }
+}
+
+@media (max-width: 480px) {
+  .notebook-project-card { flex-basis: 82vw; }
+  .notebook-heading { font-size: 26px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notebook-page-inner,
+  .notebook-page-turn,
+  .notebook-scrub-thumb,
+  .notebook-scrub-fill,
+  .notebook-page--left {
+    animation: none;
+    transition: none;
+  }
+}
