@@ -93,45 +93,30 @@ export const SKILL_CATEGORIES = [
 
 export const PROJECTS = [
   {
-    title: 'Hospital Management System',
-    tags: ['Laravel', 'PHP', 'MySQL'],
+    title: 'HR Management System',
+    tags: ['Python','FastAPI','React','Tailwind','Mysql'],
     link: '#',
   },
   {
-    title: 'TaskFlow Manager',
-    tags: ['Laravel', 'Livewire', 'Alpine.js'],
+    title: 'Chatbot',
+    tags: ['PHP','Wordpress Custom Hooks'],
+    link: 'https://github.com/Monishadev-25/chatbot',
+  },
+  {
+    title: 'Feedback Collector',
+    tags: ['Laravel', 'PHP', 'Blade Template'],
+    link: 'https://github.com/Monishadev-25/feedbackweb',
+  },
+  {
+    title: 'Town Council',
+    tags: ['Laravel','MySql'],
     link: '#',
   },
   {
-    title: 'E-Learning Platform',
-    tags: ['Laravel', 'React', 'MySQL'],
+    title: 'Timescale',
+    tags: ['Laravel', 'OOPS','PostgresSQL','React'],
     link: '#',
-  },
-  {
-    title: 'Portfolio Website',
-    tags: ['React', 'Tailwind CSS', 'Framer'],
-    link: '#',
-  },
-  {
-    title: 'Hospital Management System',
-    tags: ['Laravel', 'PHP', 'MySQL'],
-    link: '#',
-  },
-  {
-    title: 'TaskFlow Manager',
-    tags: ['Laravel', 'Livewire', 'Alpine.js'],
-    link: '#',
-  },
-  {
-    title: 'E-Learning Platform',
-    tags: ['Laravel', 'React', 'MySQL'],
-    link: '#',
-  },
-  {
-    title: 'Portfolio Website',
-    tags: ['React', 'Tailwind CSS', 'Framer'],
-    link: '#',
-  },
+  }
 ];
 
 export const EXPERIENCE = [
