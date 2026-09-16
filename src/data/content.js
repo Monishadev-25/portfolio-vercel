@@ -24,7 +24,7 @@ export const PROFILE = {
   name: 'Monisha',
   role: 'Software Engineer',
   tagline: 'Transforming ideas into fast, scalable and intuitive web applications with modern technologies.',
-  codeSnippet: `const stack = [\n  'Laravel',\n  'React',\n  'Node.js',\n  'REST APIs'\n];`,
+  codeSnippet: `const stack = [\n  'Python',\n  'FastAPI',\n  'React',\n  'Laravel',\n  'REST APIs'\n];`,
   social: {
     github: 'https://github.com/monisha',
     linkedin: 'https://www.linkedin.com/in/muthumonisha-e-0887b6138/',
@@ -35,8 +35,7 @@ export const PROFILE = {
 
 export const ABOUT = {
   paragraphs: [
-    "I'm a Web Developer with 4+ years of experience, building web applications that solve real business problems. From Laravel and WordPress to modern technologies like React and Node.js, I enjoy turning ideas into fast, reliable, and user-friendly digital experiences.",
-    "Beyond writing code, I enjoy learning new technologies, improving existing systems, and taking on challenges that help me grow. Every project is an opportunity to build something better than the last.",
+    "I’m a Full Stack Developer with 4+ years of experience building scalable, high-performing web applications that solve real business problems. I specialize in Python, FastAPI, React, Laravel, Node.js, PostgreSQL, and MySQL, with strong experience in REST APIs, backend architecture, and database-driven applications.","I enjoy turning complex requirements into clean, reliable, and user-focused solutions—from backend architecture to frontend experiences. Always learning, building, and exploring AI and modern technologies to create something better with every project.",
   ],
   funFacts: [
     'Code Enthusiast 💻',
@@ -66,7 +65,7 @@ export const SKILL_CATEGORIES = [
     title: 'Backend',
     icon: '⚙️',
     accent: 'var(--sage)',
-    skills: ['Laravel', 'Node.js', 'Express.js'],
+    skills: ['Python','FastAPI','Laravel', 'RESTful API'],
   },
   {
     id: 'database',
