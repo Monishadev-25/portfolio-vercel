@@ -707,7 +707,16 @@ button, input, textarea {
   border-radius: 10px;
   background: linear-gradient(135deg, #cfd8f0, #f0d9c4);
   margin-bottom: 10px;
+  overflow: hidden;
 }
+
+.notebook-project-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .notebook-project-bookmark {
   position: absolute;
   top: 8px;

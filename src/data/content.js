@@ -1,5 +1,4 @@
-// All copy + structured content lives here.
-// Pages/components stay presentational — edit this file to update the site.
+import resume_matcher from '../assets/resume_matcher_thumbnail.png';
 
 export const NAV_ITEMS = [
   { id: 'home', label: 'Home', icon: 'home' },
@@ -92,29 +91,40 @@ export const SKILL_CATEGORIES = [
 
 export const PROJECTS = [
   {
+    title: 'Resumer Matcher',
+    tags: ['Python','FastAPI','React','PostgresSQL'],
+    link: 'https://github.com/Monishadev-25/resume_matcher',
+    thumbnail: resume_matcher
+  },
+  {
     title: 'HR Management System',
     tags: ['Python','FastAPI','React','Tailwind','Mysql'],
     link: '#',
+    thumbnail: "../assets/about.png"
   },
   {
     title: 'Chatbot',
     tags: ['PHP','Wordpress Custom Hooks'],
     link: 'https://github.com/Monishadev-25/chatbot',
+    thumbnail: "../assets/about.png"
   },
   {
     title: 'Feedback Collector',
     tags: ['Laravel', 'PHP', 'Blade Template'],
     link: 'https://github.com/Monishadev-25/feedbackweb',
+    thumbnail: "../assets/about.png"
   },
   {
     title: 'Town Council',
     tags: ['Laravel','MySql'],
     link: '#',
+    thumbnail: "../assets/about.png"
   },
   {
     title: 'Timescale',
     tags: ['Laravel', 'OOPS','PostgresSQL','React'],
     link: '#',
+    thumbnail: "../assets/about.png"
   }
 ];
 

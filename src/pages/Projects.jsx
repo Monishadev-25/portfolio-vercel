@@ -63,9 +63,7 @@ export default function Projects() {
           {PROJECTS.map((project) => (
             <li key={project.title} className="notebook-project-card">
               <div className="notebook-project-thumb" role="img" aria-label={`${project.title} preview`}>
-                <button type="button" className="notebook-project-bookmark" aria-label="Save project">
-                  🔖
-                </button>
+                <img src={project.thumbnail} alt="Portrait"className="notebook-photo-frame"/>
               </div>
               <h3 className="notebook-project-title">{project.title}</h3>
               <div className="notebook-project-tags">
