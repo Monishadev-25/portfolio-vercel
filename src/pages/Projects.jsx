@@ -71,7 +71,7 @@ export default function Projects() {
                   <span key={tag} className="notebook-tag">{tag}</span>
                 ))}
               </div>
-              <a href={project.link} className="notebook-project-link">
+              <a href={project.link} className="notebook-project-link" target="_blank" rel="noopener noreferrer">
                 Live Demo <Icon name="external" />
               </a>
             </li>

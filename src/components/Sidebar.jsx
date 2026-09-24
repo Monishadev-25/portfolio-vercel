@@ -1,7 +1,7 @@
 import { Icon } from './Icon';
 import { NAV_ITEMS, PROFILE } from '../data/content';
 import { useRef, useState } from 'react';
-import logo from '../assets/mmlogo.png';
+import logo from '../assets/mmlogo1.png';
 
 export default function Sidebar({ activePage, onNavigate, onClose }) {
   const audioRef          = useRef(null);
@@ -25,7 +25,7 @@ export default function Sidebar({ activePage, onNavigate, onClose }) {
     <nav className="notebook-sidebar" aria-label="Primary">
       <div className="notebook-sidebar-head">
         <div className="notebook-logo">
-          <img src={logo} alt="mmlogo" className="mmlogo"/>
+          <img src={logo} alt="mmlogo" className="mmlogo" width="70px" height="63px"/>
         </div>
         {onClose && (
           <button
