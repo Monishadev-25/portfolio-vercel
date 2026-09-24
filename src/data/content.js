@@ -93,7 +93,7 @@ export const PROJECTS = [
   {
     title: 'Resumer Matcher',
     tags: ['Python','FastAPI','React','PostgresSQL'],
-    link: 'https://github.com/Monishadev-25/resume_matcher',
+    link: 'https://resume-matcher-1s2u.vercel.app/',
     thumbnail: resume_matcher
   },
   {
